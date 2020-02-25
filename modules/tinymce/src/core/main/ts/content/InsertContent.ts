@@ -189,7 +189,7 @@ const moveSelectionToMarker = function (editor: Editor, marker) {
   selection.setRng(rng);
 };
 
-const insertHtmlAtCaret = function (editor: Editor, value: string, details) {
+export const insertHtmlAtCaret = function (editor: Editor, value: string, details) {
   let parser, serializer, parentNode, rootNode, fragment, args;
   let marker, rng, node, bookmarkHtml, merge;
   const selection: Selection = editor.selection, dom = editor.dom;
@@ -361,9 +361,7 @@ const processValue = function (value) {
 const insertAtCaret = function (editor: Editor, value) {
   const result = processValue(value);
 
-  Rtc.insertContent(editor, result.content, () => {
-    insertHtmlAtCaret(editor, result.content, result.details);
-  });
+  Rtc.insertContent(editor, result.content, result.details);
 };
 
 export default {

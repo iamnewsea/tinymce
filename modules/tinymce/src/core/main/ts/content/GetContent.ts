@@ -71,14 +71,16 @@ const getContentFromBody = (editor: Editor, args: GetContentArgs, format: Conten
   return args.content;
 };
 
+export const getContentInternal = (editor: Editor, args: GetContentArgs, format): Content => {
+  return Option.from(editor.getBody())
+  .fold(
+    Fun.constant(args.format === 'tree' ? new Node('body', 11) : ''),
+    (body) => getContentFromBody(editor, args, format, body)
+  );
+};
+
 export const getContent = (editor: Editor, args: GetContentArgs = {}): Content => {
   const format = args.format ? args.format : defaultFormat;
 
-  return Rtc.getContent(editor, format, () => {
-    return Option.from(editor.getBody())
-      .fold(
-        Fun.constant(args.format === 'tree' ? new Node('body', 11) : ''),
-        (body) => getContentFromBody(editor, args, format, body)
-      );
-  });
+  return Rtc.getContent(editor, args, format);
 };

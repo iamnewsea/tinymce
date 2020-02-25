@@ -41,35 +41,37 @@ const getHtmlContent = (editor: Editor, args: any): string => {
   return editor.selection.serializer.serialize(tmpElm, args);
 };
 
-const getContent = (editor: Editor, args: any = {}): string => {
-  const format = args.format ? args.format : 'html';
+export const getSelectedContentInternal = (editor: Editor, format, args: any = {}) => {
+  args.get = true;
+  args.format = format;
+  args.selection = true;
 
-  return Rtc.getSelectedContent(editor, format, () => {
-    args.get = true;
-    args.format = format;
-    args.selection = true;
+  args = editor.fire('BeforeGetContent', args);
+  if (args.isDefaultPrevented()) {
+    editor.fire('GetContent', args);
+    return args.content;
+  }
 
-    args = editor.fire('BeforeGetContent', args);
-    if (args.isDefaultPrevented()) {
+  if (args.format === 'text') {
+    return getTextContent(editor);
+  } else {
+    args.getInner = true;
+    const content = getHtmlContent(editor, args);
+
+    if (args.format === 'tree') {
+      return content;
+    } else {
+      args.content = editor.selection.isCollapsed() ? '' : content;
       editor.fire('GetContent', args);
       return args.content;
     }
+  }
+};
 
-    if (args.format === 'text') {
-      return getTextContent(editor);
-    } else {
-      args.getInner = true;
-      const content = getHtmlContent(editor, args);
+const getContent = (editor: Editor, args: any = {}): string => {
+  const format = args.format ? args.format : 'html';
 
-      if (args.format === 'tree') {
-        return content;
-      } else {
-        args.content = editor.selection.isCollapsed() ? '' : content;
-        editor.fire('GetContent', args);
-        return args.content;
-      }
-    }
-  });
+  return Rtc.getSelectedContent(editor, format, args);
 };
 
 export default {

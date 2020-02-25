@@ -113,20 +113,22 @@ const setContentTree = (editor: Editor, body: HTMLElement, content: Node, args: 
   return content;
 };
 
+export const setContentInternal = (editor: Editor, content: Content, args: SetContentArgs): Content => {
+  args.format = args.format ? args.format : defaultFormat;
+  args.set = true;
+  args.content = isTreeNode(content) ? '' : content;
+
+  if (!isTreeNode(content) && !args.no_events) {
+    editor.fire('BeforeSetContent', args);
+    content = args.content;
+  }
+
+  return Option.from(editor.getBody()).fold(
+    Fun.constant(content),
+    (body) => isTreeNode(content) ? setContentTree(editor, body, content, args) : setContentString(editor, body, content, args)
+  );
+};
+
 export const setContent = (editor: Editor, content: Content, args: SetContentArgs = {}): Content => {
-  return Rtc.setContent(editor, content, () => {
-    args.format = args.format ? args.format : defaultFormat;
-    args.set = true;
-    args.content = isTreeNode(content) ? '' : content;
-
-    if (!isTreeNode(content) && !args.no_events) {
-      editor.fire('BeforeSetContent', args);
-      content = args.content;
-    }
-
-    return Option.from(editor.getBody()).fold(
-      Fun.constant(content),
-      (body) => isTreeNode(content) ? setContentTree(editor, body, content, args) : setContentString(editor, body, content, args)
-    );
-  });
+  return Rtc.setContent(editor, content, args);
 };

@@ -43,7 +43,7 @@ const UndoManager = function (editor: Editor): UndoManager {
      * @method beforeChange
      */
     beforeChange () {
-      Rtc.ignore(editor, () => beforeChange(editor, locks, beforeBookmark));
+      Rtc.beforeChange(editor, locks, beforeBookmark);
     },
 
     /**
@@ -55,7 +55,7 @@ const UndoManager = function (editor: Editor): UndoManager {
      * @return {Object} Undo level that got added or null it a level wasn't needed.
      */
     add (level?: UndoLevel, event?: Event): UndoLevel {
-      return Rtc.block(editor, () => addUndoLevel(editor, undoManager, index, locks, beforeBookmark, level, event));
+      return Rtc.addUndoLevel(editor, undoManager, index, locks, beforeBookmark, level, event);
     },
 
     /**
@@ -65,7 +65,7 @@ const UndoManager = function (editor: Editor): UndoManager {
      * @return {Object} Undo level or null if no undo was performed.
      */
     undo (): UndoLevel {
-      return Rtc.undo(editor, () => undo(editor, undoManager, locks, index));
+      return Rtc.undo(editor, undoManager, locks, index);
     },
 
     /**
@@ -75,7 +75,7 @@ const UndoManager = function (editor: Editor): UndoManager {
      * @return {Object} Redo level or null if no redo was performed.
      */
     redo (): UndoLevel {
-      return Rtc.redo(editor, () => redo(editor, index, undoManager.data));
+      return Rtc.redo(editor, index, undoManager.data);
     },
 
     /**
@@ -84,7 +84,7 @@ const UndoManager = function (editor: Editor): UndoManager {
      * @method clear
      */
     clear () {
-      Rtc.block(editor, () => clear(editor, undoManager, index));
+      Rtc.clear(editor, undoManager, index);
     },
 
     /**
@@ -93,7 +93,7 @@ const UndoManager = function (editor: Editor): UndoManager {
      * @method reset
      */
     reset () {
-      Rtc.block(editor, () => reset(undoManager));
+      Rtc.reset(editor, undoManager);
     },
 
     /**
@@ -103,7 +103,7 @@ const UndoManager = function (editor: Editor): UndoManager {
      * @return {Boolean} true/false if the undo manager has any undo levels.
      */
     hasUndo () {
-      return Rtc.hasUndo(editor, () => hasUndo(editor, undoManager, index));
+      return Rtc.hasUndo(editor, undoManager, index);
     },
 
     /**
@@ -113,7 +113,7 @@ const UndoManager = function (editor: Editor): UndoManager {
      * @return {Boolean} true/false if the undo manager has any redo levels.
      */
     hasRedo () {
-      return Rtc.hasRedo(editor, () => hasRedo(undoManager, index));
+      return Rtc.hasRedo(editor, undoManager, index);
     },
 
     /**
@@ -127,7 +127,7 @@ const UndoManager = function (editor: Editor): UndoManager {
      * @return {Object} Undo level that got added or null it a level wasn't needed.
      */
     transact (callback: () => void): UndoLevel {
-      return Rtc.transact(editor, callback, () => transact(undoManager, locks, callback));
+      return Rtc.transact(editor, undoManager, locks, callback);
     },
 
     /**
@@ -139,7 +139,7 @@ const UndoManager = function (editor: Editor): UndoManager {
      * @param {function} callback Function that gets executed and has dom manipulation logic in it.
      */
     ignore (callback: () => void) {
-      Rtc.block(editor, () => ignore(locks, callback));
+      Rtc.ignore(editor, locks, callback);
     },
 
     /**
@@ -152,11 +152,13 @@ const UndoManager = function (editor: Editor): UndoManager {
      * @param {function} callback2 Function that does mutation but gets displayed to the user.
      */
     extra (callback1: () => void, callback2: () => void) {
-      Rtc.block(editor, () => extra(editor, undoManager, index, callback1, callback2));
+      Rtc.extra(editor, undoManager, index, callback1, callback2);
     }
   };
 
-  Rtc.ignore(editor, () => registerEvents(editor, undoManager, locks));
+  if (!Rtc.isRtc(editor)) {
+    registerEvents(editor, undoManager, locks);
+  }
 
   addKeyboardShortcuts(editor);
 
